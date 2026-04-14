@@ -29,20 +29,6 @@ SYMBOLS = {
     'star': '⭐'
 }
 
-# Опциональные Custom Emoji ID для Telegram.
-# Чтобы включить кастомные эмодзи на барабанах, вставьте сюда emoji-id.
-# Пример: 'cherry': '5368324170671202286'
-CUSTOM_REEL_EMOJI_IDS = {
-    'cherry': None,
-    'lemon': None,
-    'orange': None,
-    'watermelon': None,
-    'grape': None,
-    'seven': None,
-    'diamond': None,
-    'star': '5875419753740242762'
-}
-
 # Настройки игры (загружаются из config.py или .env)
 SPIN_ANIMATION_STEPS = 5  # Уменьшаем кадры чтобы избежать flood control
 
@@ -149,14 +135,7 @@ def check_win(reels):
 
 def format_reels(reels):
     """Форматирование барабанов для отображения"""
-    return ' '.join([format_symbol(symbol) for symbol in reels])
-
-def format_symbol(symbol):
-    """Форматирование символа с поддержкой Telegram custom emoji"""
-    custom_emoji_id = CUSTOM_REEL_EMOJI_IDS.get(symbol)
-    if custom_emoji_id:
-        return f'<tg-emoji emoji-id="{custom_emoji_id}"></tg-emoji>'
-    return SYMBOLS[symbol]
+    return ' '.join([SYMBOLS[symbol] for symbol in reels])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Команда /start"""
@@ -388,13 +367,11 @@ async def spin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"    {effect}    \n"
             f"══════════════════════\n\n"
             f"      ╔═══╦═══╦═══╗\n"
-            f"      ║ 🎲 ║ 🎲 ║ 🎲 ║\n"
-            f"      ╚═══╩═══╩═══╝\n"
+            f"      ║ {SYMBOLS[random_reels[0]]} ║ {SYMBOLS[random_reels[1]]} ║ {SYMBOLS[random_reels[2]]} ║\n"
+            f"      ╚═══╩═══╩═══╝\n\n"
             f"══════════════════════\n"
             f"  {'⚡' * min(i + 1, 5)}{' ' * (10 - 2 * min(i + 1, 5))}\n"
-            f"══════════════════════</code>\n"
-            f"        {format_reels(random_reels)}\n"
-            f"══════════════════════\n"
+            f"══════════════════════</code>"
         )
         
         try:
@@ -474,11 +451,9 @@ async def spin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"    {celebration}    \n"
             f"══════════════════════\n\n"
             f"      ╔═══╦═══╦═══╗\n"
-            f"      ║ 🎰 ║ 🎰 ║ 🎰 ║\n"
-            f"      ╚═══╩═══╩═══╝\n"
+            f"      ║ {SYMBOLS[final_reels[0]]} ║ {SYMBOLS[final_reels[1]]} ║ {SYMBOLS[final_reels[2]]} ║\n"
+            f"      ╚═══╩═══╩═══╝\n\n"
             f"══════════════════════</code>\n"
-            f"        {format_reels(final_reels)}\n"
-            f"<code>══════════════════════</code>\n"
             f"💰 Множитель: <b>x{multiplier}</b>\n"
             f"💵 Выигрыш: <b>{winnings} FC</b>\n"
             f"📈 Прибыль: <b>+{profit} FC</b>\n"
@@ -495,11 +470,9 @@ async def spin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"   😔 НЕ ПОВЕЗЛО 😔   \n"
             f"══════════════════════\n\n"
             f"      ╔═══╦═══╦═══╗\n"
-            f"      ║ 🎰 ║ 🎰 ║ 🎰 ║\n"
-            f"      ╚═══╩═══╩═══╝\n"
+            f"      ║ {SYMBOLS[final_reels[0]]} ║ {SYMBOLS[final_reels[1]]} ║ {SYMBOLS[final_reels[2]]} ║\n"
+            f"      ╚═══╩═══╩═══╝\n\n"
             f"══════════════════════</code>\n"
-            f"        {format_reels(final_reels)}\n"
-            f"<code>══════════════════════</code>\n"
             f"💔 Ничего не совпало\n"
             f"💸 Потеряно: <b>{BET_AMOUNT} FC</b>\n"
             f"<code>══════════════════════</code>\n"
