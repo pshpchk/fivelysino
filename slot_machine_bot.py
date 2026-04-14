@@ -40,7 +40,7 @@ CUSTOM_REEL_EMOJI_IDS = {
     'grape': None,
     'seven': None,
     'diamond': None,
-    'star': None
+    'star': '5875419753740242762'
 }
 
 # Настройки игры (загружаются из config.py или .env)
