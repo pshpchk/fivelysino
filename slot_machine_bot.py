@@ -29,6 +29,20 @@ SYMBOLS = {
     'star': '⭐'
 }
 
+# Опциональные Custom Emoji ID для Telegram.
+# Чтобы включить кастомные эмодзи на барабанах, вставьте сюда emoji-id.
+# Пример: 'cherry': '5368324170671202286'
+CUSTOM_REEL_EMOJI_IDS = {
+    'cherry': None,
+    'lemon': None,
+    'orange': None,
+    'watermelon': None,
+    'grape': None,
+    'seven': None,
+    'diamond': None,
+    'star': None
+}
+
 # Настройки игры (загружаются из config.py или .env)
 SPIN_ANIMATION_STEPS = 5  # Уменьшаем кадры чтобы избежать flood control
 
@@ -135,7 +149,14 @@ def check_win(reels):
 
 def format_reels(reels):
     """Форматирование барабанов для отображения"""
-    return ' '.join([SYMBOLS[symbol] for symbol in reels])
+    return ' '.join([format_symbol(symbol) for symbol in reels])
+
+def format_symbol(symbol):
+    """Форматирование символа с поддержкой Telegram custom emoji"""
+    custom_emoji_id = CUSTOM_REEL_EMOJI_IDS.get(symbol)
+    if custom_emoji_id:
+        return f'<tg-emoji emoji-id="{custom_emoji_id}"></tg-emoji>'
+    return SYMBOLS[symbol]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Команда /start"""
@@ -220,18 +241,6 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         stats_text,
         reply_markup=reply_markup,
-        parse_mode=ParseMode.HTML
-    )
-
-async def add_coins(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Команда /addcoins - добавить монеты (для тестирования)"""
-    user_id = update.effective_user.id
-    user_name = update.effective_user.first_name
-    new_balance = update_user_coins(user_id, 500, is_win=False, user_name=user_name)
-    
-    await update.message.reply_text(
-        f"💰 Вам добавлено 500 FivelyCoin!\n"
-        f"Новый баланс: <b>{new_balance} FivelyCoin</b>",
         parse_mode=ParseMode.HTML
     )
 
@@ -325,11 +334,6 @@ async def spin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Проверка баланса
     if coins < BET_AMOUNT:
-        keyboard = [
-            [InlineKeyboardButton("💰 Добавить монеты", callback_data='add_coins')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=(
@@ -337,9 +341,8 @@ async def spin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"😔 <b>Недостаточно монет!</b>\n\n"
                 f"Баланс: {coins} FivelyCoin\n"
                 f"Необходимо: {BET_AMOUNT} FivelyCoin\n\n"
-                f"Используйте /addcoins для пополнения."
+                f"Пополнение отключено. Дождитесь пополнения от администратора."
             ),
-            reply_markup=reply_markup,
             parse_mode=ParseMode.HTML
         )
         return
@@ -385,8 +388,9 @@ async def spin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"    {effect}    \n"
             f"══════════════════════\n\n"
             f"      ╔═══╦═══╦═══╗\n"
-            f"      ║ {SYMBOLS[random_reels[0]]} ║ {SYMBOLS[random_reels[1]]} ║ {SYMBOLS[random_reels[2]]} ║\n"
-            f"      ╚═══╩═══╩═══╝\n\n"
+            f"      ║ 🎲 ║ 🎲 ║ 🎲 ║\n"
+            f"      ╚═══╩═══╩═══╝\n"
+            f"        {format_reels(random_reels)}\n\n"
             f"══════════════════════\n"
             f"  {'⚡' * min(i + 1, 5)}{' ' * (10 - 2 * min(i + 1, 5))}\n"
             f"══════════════════════</code>"
@@ -469,8 +473,9 @@ async def spin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"    {celebration}    \n"
             f"══════════════════════\n\n"
             f"      ╔═══╦═══╦═══╗\n"
-            f"      ║ {SYMBOLS[final_reels[0]]} ║ {SYMBOLS[final_reels[1]]} ║ {SYMBOLS[final_reels[2]]} ║\n"
-            f"      ╚═══╩═══╩═══╝\n\n"
+            f"      ║ 🎰 ║ 🎰 ║ 🎰 ║\n"
+            f"      ╚═══╩═══╩═══╝\n"
+            f"        {format_reels(final_reels)}\n\n"
             f"══════════════════════</code>\n"
             f"💰 Множитель: <b>x{multiplier}</b>\n"
             f"💵 Выигрыш: <b>{winnings} FC</b>\n"
@@ -488,8 +493,9 @@ async def spin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"   😔 НЕ ПОВЕЗЛО 😔   \n"
             f"══════════════════════\n\n"
             f"      ╔═══╦═══╦═══╗\n"
-            f"      ║ {SYMBOLS[final_reels[0]]} ║ {SYMBOLS[final_reels[1]]} ║ {SYMBOLS[final_reels[2]]} ║\n"
-            f"      ╚═══╩═══╩═══╝\n\n"
+            f"      ║ 🎰 ║ 🎰 ║ 🎰 ║\n"
+            f"      ╚═══╩═══╩═══╝\n"
+            f"        {format_reels(final_reels)}\n\n"
             f"══════════════════════</code>\n"
             f"💔 Ничего не совпало\n"
             f"💸 Потеряно: <b>{BET_AMOUNT} FC</b>\n"
@@ -537,30 +543,6 @@ async def spin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.HTML
         )
 
-async def add_coins_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик добавления монет"""
-    query = update.callback_query
-    await query.answer("💰 Монеты добавлены!")
-    
-    user_id = update.effective_user.id
-    user_name = update.effective_user.first_name
-    new_balance = update_user_coins(user_id, 500, is_win=False, user_name=user_name)
-    
-    keyboard = [
-        [InlineKeyboardButton("🎰 Крутить барабаны", callback_data='spin')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=(
-            f"💰 Вам добавлено 500 FivelyCoin!\n"
-            f"Новый баланс: <b>{new_balance} FivelyCoin</b>"
-        ),
-        reply_markup=reply_markup,
-        parse_mode=ParseMode.HTML
-    )
-
 async def stats_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик показа статистики"""
     query = update.callback_query
@@ -586,8 +568,7 @@ async def stats_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard = [
         [InlineKeyboardButton("🎰 Крутить барабаны", callback_data='spin')],
-        [InlineKeyboardButton("🏆 Топ игроков", callback_data='leaderboard'),
-         InlineKeyboardButton("💰 Добавить монеты", callback_data='add_coins')]
+        [InlineKeyboardButton("🏆 Топ игроков", callback_data='leaderboard')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -698,13 +679,11 @@ def main():
     # Регистрация обработчиков команд
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("balance", balance))
-    application.add_handler(CommandHandler("addcoins", add_coins))
     application.add_handler(CommandHandler("leaderboard", leaderboard))
     application.add_handler(CommandHandler("top", leaderboard))  # Альтернативная команда
     
     # Регистрация обработчиков callback кнопок
     application.add_handler(CallbackQueryHandler(spin_handler, pattern='^spin$'))
-    application.add_handler(CallbackQueryHandler(add_coins_handler, pattern='^add_coins$'))
     application.add_handler(CallbackQueryHandler(stats_handler, pattern='^stats$'))
     application.add_handler(CallbackQueryHandler(leaderboard_handler, pattern='^leaderboard$'))
     
